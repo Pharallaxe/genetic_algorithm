@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithme Génétique</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+    #generationHistory {
+        height : 200px;
+        width: 100%;
+        background-color: #272727;
+        color: aliceblue;
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .value-res {
+        margin: 0;
+    }
+
+    .resultat {
+        font-size: "Courier New", Courier, monospace ;
+    }
+
+</style>
+<body style="padding-top:50px">
+    <div class="container my-10">
+        <h1 class="text-center mb-5">Algorithme Génétique - Recherche de Chaîne</h1>
+    
+        <button id="explainButton" class="btn btn-info rounded-circle position-fixed" style="top: 20px; left: 20px; width: 40px; height: 40px;">?</button>
+    
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <form id="geneticForm" class="bg-light p-4 rounded shadow-sm mb-5">
+                    <div class="mb-4">
+                        <label for="targetLength" class="form-label">Longueur de la chaîne cible</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="targetLength" required placeholder="1-200" value="20" min="1" max="200">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Caractères autorisés</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="useLowercase" checked>
+                                <label class="form-check-label" for="useLowercase">Minuscules</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="useUppercase">
+                                <label class="form-check-label" for="useUppercase">Majuscules</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="useNumbers">
+                                <label class="form-check-label" for="useNumbers">Nombres</label>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label for="populationSize" class="form-label">Taille de la population</label>
+                            <input type="number" class="form-control" id="populationSize" required placeholder="5-100000" value="40" min="5" max="100000">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="selectionSize" class="form-label">Sélection par génération</label>
+                            <input type="number" class="form-control" id="selectionSize" required placeholder="1-1000" value="10" min="1" max="1000">
+                        </div>
+                    </div>
+    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label for="generationLimit" class="form-label">Générations</label>
+                            <input type="number" class="form-control" id="generationLimit" required placeholder="1-1000000" value="1000" min="1" max="1000000">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="mutationRate" class="form-label">Taux de mutation (%)</label>
+                            <input type="number" class="form-control" id="mutationRate" required placeholder="0.1-100" value="1" step="0.1" min="0.1" max="100">
+                        </div>
+                    </div>
+    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Lancer l'algorithme</button>
+                        <button id="stopButton" class="btn btn-secondary" disabled>Arrêter l'algorithme</button>
+                    </div>
+                </form>
+    
+                <div id="results" class="bg-light p-4 rounded shadow-sm">
+                    <h2 class="h4 mb-4">Résultats</h2>
+                    <div class="resultat col-md-6 mb-3 mb-md-0">
+                        <p class="mb-1">Cible :</p>
+                        <strong id="targetString" class="d-block text-break bg-light p-2 rounded">xxxxxxxxxx</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1">Finale :</p>
+                        <strong id="bestMatch" class="d-block text-break bg-light p-2 rounded">xxxxxxxxxx</strong>
+                    </div>
+                <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <p class="mb-1">Générations :</p>
+                            <strong id="totalGenerations" class="d-block">000000</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1">Correspondances :</p>
+                            <strong id="matchCount" class="d-block">0/0</strong>
+                        </div>
+                    </div>
+                    <h3 class="h5 mb-3">Historique des générations</h3>
+                    <div id="generationHistory" class="list-group"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="explanationModal" tabindex="-1" aria-labelledby="explanationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="explanationModalLabel">Explication de l'Algorithme Génétique</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body container-ex container mt-4">
+                <p>Cette application démontre le fonctionnement d'un algorithme génétique pour trouver une chaîne de caractères cible.</p>
+                
+                <p>Un algorithme génétique est une méthode d'optimisation inspirée par le processus d'évolution naturelle. Il est utilisé pour résoudre des problèmes complexes en simulant l'évolution d'une population de solutions potentielles.</p>
+    
+                <h3>Principes clés :</h3>
+                <ul>
+                    <li><strong>Population :</strong> Un ensemble de solutions potentielles (individus).</li>
+                    <li><strong>Fitness :</strong> Une mesure de la qualité de chaque solution.</li>
+                    <li><strong>Sélection :</strong> Choix des meilleures solutions pour la reproduction.</li>
+                    <li><strong>Croisement :</strong> Combinaison de deux solutions pour en créer de nouvelles.</li>
+                    <li><strong>Mutation :</strong> Modification aléatoire de certaines solutions pour maintenir la diversité.</li>
+                </ul>
+    
+                <p>L'algorithme répète ces étapes sur plusieurs générations, améliorant progressivement la qualité des solutions jusqu'à atteindre un résultat satisfaisant ou un nombre maximum d'itérations.</p>
+    
+                <p>Dans cette démonstration, nous utilisons un algorithme génétique pour trouver une chaîne de caractères cible, illustrant comment cette approche peut résoudre des problèmes de recherche et d'optimisation.</p>
+    
+                <h3>Comment ça marche :</h3>
+                <ol>
+                    <li><strong>Configuration :</strong> Définissez la longueur de la chaîne cible et les types de caractères à utiliser.</li>
+                    <li><strong>Paramètres de l'algorithme :</strong> Ajustez la taille de la population, le nombre d'individus sélectionnés par génération, le nombre maximum de générations et le taux de mutation.</li>
+                    <li><strong>Lancement :</strong> Cliquez sur "Lancer l'algorithme" pour démarrer la recherche.</li>
+                    <li><strong>Observation :</strong> Suivez l'évolution de la meilleure correspondance à chaque génération.</li>
+                    <li><strong>Résultats :</strong> L'algorithme s'arrête lorsqu'il trouve la chaîne cible ou atteint le nombre maximum de générations.</li>
+                </ol>
+            
+                <h3>Éléments de l'interface :</h3>
+                <ul>
+                    <li><strong>Chaîne cible :</strong> La séquence de caractères que l'algorithme essaie de trouver.</li>
+                    <li><strong>Meilleure correspondance :</strong> La chaîne la plus proche de la cible à chaque génération.</li>
+                    <li><strong>Nombre de correspondances :</strong> Le nombre de caractères corrects dans la meilleure correspondance.</li>
+                    <li><strong>Nombre total de générations :</strong> Le nombre de cycles d'évolution effectués.</li>
+                    <li><strong>Historique des générations :</strong> Un aperçu des meilleures correspondances pour chaque génération.</li>
+                </ul>
+            
+                <p>Les caractères en rouge dans la meilleure correspondance indiquent une correspondance exacte avec la chaîne cible.</p>
+            
+                <p>Utilisez le bouton "Arrêter l'algorithme" pour interrompre le processus à tout moment.</p>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="genetic-algorithm.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
